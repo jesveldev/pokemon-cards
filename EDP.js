@@ -2,8 +2,19 @@
 
 var pokemons = [];
 
+function findCoincidences(array,coincidence){
+	for(let i = 0; i < array.length; i++){
+		if(coincidence===array[i]) return true;
+		else continue;
+	}
+
+	return false;
+}
+
 async function fetchData(url){
-	const data = await fetch(url).then(res=>res.json()).catch(e=>console.error(e));
+	const data = await fetch(url).then(res=>res.json()).catch(e=>{
+		return e;
+	});
 
 	return [
 		data.name,
@@ -12,26 +23,36 @@ async function fetchData(url){
 	];
 }
 
-async function buildCards(){
-	let firstGenPokemon = [],
-		renderElement = document.createDocumentFragment(),
-		resultados = prompt("¿Cuántos pokemones quieres ver?");
+async function buildCard(pokemon){
 
-	for(let i = 1; i <= resultados; i++){
+	if(pokemon.value == ''){
+		alert("Escribe el nombre de un Pokemon");
+		return null;
+	}
 
-		let pokemonCard = document.createElement("div"),
-			pokemonCardElements = [
-			document.createElement("h3"),
-			document.createElement("img"),
-			document.createElement("img")
-			],
-			pokemonCardInfo = document.createDocumentFragment();
+	let renderElement = document.createDocumentFragment(),
+		pokemonCard = document.createElement("div"),
+		pokemonCardElements = [
+		document.createElement("h3"),
+		document.createElement("img"),
+		document.createElement("img")
+		],
+		pokemonCardInfo = document.createDocumentFragment();
 
-		let attributes = await fetchData(`https://pokeapi.co/api/v2/pokemon/${i}`);
+	try{
 
+		if(findCoincidences(pokemons,pokemon.value)){
+			throw Error(`${pokemon.value} ya ha sido buscado`);
+		}
+
+		let attributes = await fetchData(`https://pokeapi.co/api/v2/pokemon/${pokemon.value.toLowerCase()=='giratina'?'giratina-altered':pokemon.value}`);
 		console.log(attributes);
 
-		pokemonCardElements[0].textContent=attributes[0];
+		pokemonCard.setAttribute("class","pokemon-card");
+
+		pokemonCardElements[0].textContent=attributes[0]
+		.toLowerCase()=='giratina-altered'?'giratina':attributes[0];
+
 		pokemonCardElements[1].setAttribute("src",attributes[1]);
 		pokemonCardElements[2].setAttribute("src",attributes[2]);
 
@@ -41,13 +62,15 @@ async function buildCards(){
 
 		pokemonCardInfo.appendChild(pokemonCard);
 
-		firstGenPokemon.push(pokemonCardInfo)
+		pokemons.push(pokemon.value);
+		document.getElementById("pkmn-list").appendChild(pokemonCardInfo);
+			
+	}catch(e){
+		console.log(e);
 	}
-
-	for (let i = 0; i < firstGenPokemon.length; i++) renderElement.appendChild(firstGenPokemon[i]);
-
-	pokemons.push(renderElement);
-	document.body.appendChild(renderElement);
 }
 
-buildCards();
+document.getElementById("submit").addEventListener("click",(e)=>{
+	e.preventDefault();
+	buildCard(document.getElementById("search-bar"));
+});
