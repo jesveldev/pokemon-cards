@@ -46,6 +46,7 @@ async function buildCard(pokemon){
 		}
 
 		let attributes = await fetchData(`https://pokeapi.co/api/v2/pokemon/${pokemon.value.toLowerCase()=='giratina'?'giratina-altered':pokemon.value}`);
+		
 		console.log(attributes);
 
 		pokemonCard.setAttribute("class","pokemon-card");
